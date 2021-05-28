@@ -21,13 +21,14 @@ import com.spring.project.member.vo.MemberVO;
 public class MemberControllerImpl implements MemberController {
 
 	@Autowired
-	private MemberVO memeberVO;
+	private MemberVO memberVO;
 	@Autowired
 	private MemberService memberService;
 
 	@RequestMapping(value = "/main.do", method = RequestMethod.GET)
 	private ModelAndView main(HttpServletRequest request, HttpServletResponse response) {
 		String viewName = (String) request.getAttribute("viewName");
+
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(viewName);
 		return mav;
@@ -39,7 +40,7 @@ public class MemberControllerImpl implements MemberController {
 		request.setCharacterEncoding("utf-8");
 		response.setContentType("html/text;charset=utf-8");
 		String viewName = (String) request.getAttribute("viewName");
-		List membersList = memberService.listMembers();
+		List<MemberVO> membersList = memberService.listMembers();
 		ModelAndView mav = new ModelAndView(viewName);
 		mav.addObject("membersList", membersList);
 		return mav;
@@ -70,16 +71,29 @@ public class MemberControllerImpl implements MemberController {
 
 		ModelAndView mav = new ModelAndView();
 		memberVO = memberService.login(memberVO);
-		HttpSession session = request.getSession();
-
+		
+		// 로그인 X -> 글쓰기 -> action 값 할당 -> 로그인 O -> action 실행
+		HttpSession session = request.getSession();		
+		String action = (String) session.getAttribute("action");
+		
 		if (memberVO != null) {
 			session.setAttribute("isLogOn", true);
 			session.setAttribute("member", memberVO);
-			mav.setViewName("redirect:/member/listMembers.do");
+				
+			if(action != null) {
+				session.removeAttribute("action");
+				mav.setViewName("redirect:"+action);
+			} else {
+				mav.setViewName("redirect:/member/listMembers.do");
+			}
 		} else {
 			rAttr.addAttribute("result", "loginFailed");
+			// 로그인 실패 -> action 값 그대로 loginForm.do 전송
+			rAttr.addAttribute("action", action);
 			mav.setViewName("redirect:/member/loginForm.do");
 		}
+		
+		System.out.println("login() - action : " + action);
 		return mav;
 	}
 
@@ -98,12 +112,19 @@ public class MemberControllerImpl implements MemberController {
 	}
 
 	@RequestMapping(value = "/member/*Form.do", method = RequestMethod.GET)
-	public ModelAndView form(HttpServletRequest request, HttpServletResponse response) throws Exception {
+	public ModelAndView form(@RequestParam(value="result", required=false) String result,
+			@RequestParam(value="action", required=false) String action, 
+			HttpServletRequest request, HttpServletResponse response) throws Exception {
 
+		HttpSession session=request.getSession();
+
+		// 로그인 X -> 글쓰기 -> action 값 할당
+		session.setAttribute("action", action);
+		
 		String viewName = (String) request.getAttribute("viewName");
 		ModelAndView mav = new ModelAndView();
+		mav.addObject("result", result);
 		mav.setViewName(viewName);
-
 		return mav;
 	}
 }

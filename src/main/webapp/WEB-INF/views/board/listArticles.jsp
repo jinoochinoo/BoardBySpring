@@ -11,9 +11,9 @@
 <html>
 <head>
  <style>
-   .cls1 {text-decoration:none;}
+   .cls1{text-decoration:none;}
    .cls2{text-align:center; font-size:30px;}
-  </style>
+</style>
   <meta charset="UTF-8">
   <title>글목록창</title>
 </head>
@@ -36,7 +36,7 @@
      <td >작성일</td>
   </tr>
 <c:choose>
-  <c:when test="${articlesList ==null }" >
+  <c:when test="${articlesList == null}" >
     <tr  height="10">
       <td colspan="4">
          <p align="center">
@@ -72,7 +72,7 @@
     </c:choose>
 </table>
 <!-- <a  class="cls1"  href="#"><p class="cls2">글쓰기</p></a> -->
-<a  class="cls1"  href="javascript:fn_articleForm('${isLogOn}','${contextPath}/board/articleForm.do', 
-                                                    '${contextPath}/member/loginForm.do')"><p class="cls2">글쓰기</p></a>
+<a class="cls1" href="javascript:fn_articleForm('${isLogOn}','${contextPath}/board/articleForm.do', '${contextPath}/member/loginForm.do')">
+<p class="cls2">글쓰기</p></a>
 </body>
 </html>

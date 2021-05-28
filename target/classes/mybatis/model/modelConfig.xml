@@ -5,7 +5,7 @@
 <configuration>
 	<typeAliases>
  		<typeAlias type="com.spring.project.member.vo.MemberVO"  alias="memberVO" />
-<!--		<typeAlias type="com.myspring.pro30.board.vo.ArticleVO"  alias="articleVO" />
-		<typeAlias type="com.myspring.pro30.board.vo.ImageVO"  alias="imageVO" /> -->
+		<typeAlias type="com.spring.project.board.vo.ArticleVO"  alias="articleVO" />
+		<typeAlias type="com.spring.project.board.vo.ImageVO"  alias="imageVO" />
 	</typeAliases>
 </configuration>
