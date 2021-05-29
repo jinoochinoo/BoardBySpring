@@ -16,6 +16,9 @@ public class BoardDAOImpl implements BoardDAO {
 	@Autowired
 	SqlSession sqlSession;
 	
+	@Autowired
+	ArticleVO articleVO;
+	
 	@Override
 	public List<ArticleVO> selectAllArticlesList() throws DataAccessException {
 		
@@ -36,6 +39,17 @@ public class BoardDAOImpl implements BoardDAO {
 	private int selectNewArticleNO() {		
 		int articleNO = sqlSession.selectOne("mapper.board.selectNewArticleNO");
 		return articleNO;
+	}
+
+	@Override
+	public ArticleVO selectArticle(int articleNO) throws DataAccessException {
+		articleVO = sqlSession.selectOne("mapper.board.selectArticle", articleNO);
+		return articleVO;
+	}
+
+	@Override
+	public void updateArticle(Map<String, Object> articleMap) throws DataAccessException {
+		sqlSession.update("mapper.board.updateArticle", articleMap);
 	}
 
 }

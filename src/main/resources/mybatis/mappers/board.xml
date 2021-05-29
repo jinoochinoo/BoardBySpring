@@ -30,16 +30,47 @@
     ]]>
 	</select>
 	
-	<select id="insertNewArticle" parameterType="java.util.Map">
+	<insert id="insertNewArticle" parameterType="java.util.Map">
 		<![CDATA[
 			INSERT INTO t_board(articleNO, title, content, imageFileName, id)
 			VALUES(#{articleNO}, #{title}, #{content}, #{imageFileName}, #{id})
 		]]>
-	</select>
+	</insert>
 	
 	<select id="selectNewArticleNO" resultType="int">
 		<![CDATA[
 			SELECT max(articleNO) + 1 FROM t_board
 		]]>		
 	</select>
+	
+	<select id="selectArticle" parameterType="int" resultType="articleVO">
+		<![CDATA[
+			SELECT * 
+			FROM t_board 
+			WHERE articleNO = #{articleNO}
+		]]>
+	</select>
+	
+	<update id="updateArticle" parameterType="java.util.Map">
+		<![CDATA[
+		UPDATE t_board
+		SET title = #{title},
+		content = #{content}
+		<if test="imageFileName != '' and imageFileName != null">
+			, imageFileName = #{imageFileName}
+		</if>
+		where articleNO = #{articleNO}
+		]]>
+	</update>
+	
+	<delete id="deleteArticle" parameterType="int">
+		<![CDATA[
+		DELETE FROM t_board
+		WHERE articleNO in (
+			SELECT articleNO from t_board
+			START WITH articleNO = #{articleNO}
+			CONNECT BY PRIOR articleNO = parentNO )
+		]]>		
+	</delete>	
+	
 </mapper>

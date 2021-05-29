@@ -19,7 +19,7 @@ public class ArticleVO {
 	private Date  writeDate;
 	
 	public ArticleVO() {
-		System.out.println("ArticleVO 기본생성자 호출");
+		System.out.println("ArticleVO 기본생성자 호출 // articleNO : " + articleNO);
 	}
 
 	public int getArticleNO() {
