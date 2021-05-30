@@ -23,11 +23,20 @@ public class BoardServiceImpl implements BoardService {
 		List<ArticleVO> listArticles = boardDAO.selectAllArticlesList();
 		return listArticles;
 	}
-
+	
 	@Override
-	public int addNewArticle(Map<String, Object> articleMap) throws Exception {
-		return boardDAO.insertNewArticle(articleMap); 
+	public int addNewArticle(Map<String, Object> articleMap) throws Exception{
+		int articleNO = boardDAO.insertNewArticle(articleMap);
+		articleMap.put("articleNO", articleNO);
+		boardDAO.insertNewImage(articleMap);
+		return articleNO;
 	}
+	
+//////////////////////////////첨부파일 한 개일 때 사용한 addNewArticle() ///////////////////////////////////
+//	@Override
+//	public int addNewArticle(Map<String, Object> articleMap) throws Exception {
+//		return boardDAO.insertNewArticle(articleMap); 
+//	}
 
 	@Override
 	public ArticleVO viewArticle(int articleNO) throws Exception {
@@ -37,6 +46,11 @@ public class BoardServiceImpl implements BoardService {
 	@Override
 	public void modArticle(Map<String, Object> articleMap) throws Exception {
 		boardDAO.updateArticle(articleMap);
+	}
+
+	@Override
+	public void removeArticle(int articleNO) throws Exception {
+		boardDAO.deleteArticle(articleNO);
 	}
 
 }

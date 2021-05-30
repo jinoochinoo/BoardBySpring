@@ -13,7 +13,6 @@ public class MemberVO {
 	private Date joinDate;
 
 	public MemberVO() {
-		
 	}
 
 	public MemberVO(String id, String pwd, String name, String email) {

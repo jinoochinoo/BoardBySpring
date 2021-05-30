@@ -15,10 +15,6 @@ request.setCharacterEncoding("UTF-8");
 <meta charset="UTF-8">
 <title>글보기</title>
 <style>
-#tr_file_upload {
-	display: none;
-}
-
 #tr_btn_modify {
 	display: none;
 }
@@ -35,7 +31,7 @@ request.setCharacterEncoding("UTF-8");
 		 document.getElementById("i_content").disabled=false;
 		 document.getElementById("i_imageFileName").disabled=false;
 		 document.getElementById("tr_btn_modify").style.display="block";
-		 document.getElementById("tr_file_upload").style.display="block";
+		 document.getElementById("tr_file_upload").style.visibility="visible";
 		 document.getElementById("tr_btn").style.display="none";
 	 }
 	 
@@ -56,7 +52,6 @@ request.setCharacterEncoding("UTF-8");
 	     form.appendChild(articleNOInput);
 	     document.body.appendChild(form);
 	     form.submit();
-	 
 	 }
 	 
 	 function fn_reply_form(url, parentNO){
@@ -131,18 +126,16 @@ request.setCharacterEncoding("UTF-8");
 						<td><input type="hidden" name="originalFileName" value="${article.imageFileName}" /> 
 						<img src="${contextPath}/download.do?articleNO=${article.articleNO}&imageFileName=${article.imageFileName}" id="preview" /><br></td>
 					</tr>
-					<tr>
-						<td></td>
+					<tr id="tr_file_upload" style="visibility:hidden">
 						<td><input type="file" name="imageFileName " id="i_imageFileName" disabled onchange="readURL(this);" /></td>
 					</tr>
 				</c:when>
 				<c:otherwise>
-					<tr id="tr_file_upload">
+					<tr>
 						<td width="150" align="center" bgcolor="#FF9933" rowspan="2">이미지</td>
 						<td><input type="hidden" name="originalFileName" value="${article.imageFileName}" /></td>
 					</tr>
-					<tr>
-						<td></td>
+					<tr id="tr_file_upload" style="visibility:hidden">
 						<td><img id="preview" /><br><input type="file" name="imageFileName " id="i_imageFileName" disabled onchange="readURL(this);" /></td>
 					</tr>
 				</c:otherwise>

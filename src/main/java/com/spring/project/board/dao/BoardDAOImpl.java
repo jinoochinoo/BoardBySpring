@@ -1,5 +1,6 @@
 package com.spring.project.board.dao;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -9,6 +10,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Repository;
 
 import com.spring.project.board.vo.ArticleVO;
+import com.spring.project.board.vo.ImageVO;
 
 @Repository
 public class BoardDAOImpl implements BoardDAO {
@@ -19,6 +21,8 @@ public class BoardDAOImpl implements BoardDAO {
 	@Autowired
 	ArticleVO articleVO;
 	
+	
+	
 	@Override
 	public List<ArticleVO> selectAllArticlesList() throws DataAccessException {
 		
@@ -26,14 +30,29 @@ public class BoardDAOImpl implements BoardDAO {
 		
 		return listArticles;
 	}
-
+	
 	@Override
 	public int  insertNewArticle(Map<String, Object> articleMap) throws DataAccessException {
-		
 		int articleNO = selectNewArticleNO();
 		articleMap.put("articleNO", articleNO);
 		sqlSession.insert("mapper.board.insertNewArticle", articleMap);
 		return articleNO;
+	}
+	
+	@Override
+	public void insertNewImage(Map<String, Object> articleMap) throws DataAccessException {
+		List<ImageVO> imageFileList = (ArrayList) articleMap.get("imageFileList");
+		int articleNO = (Integer) articleMap.get("articleNO");
+		int imageFileNO = selectNewImageFileNO();
+		for(ImageVO imageVO : imageFileList) {
+			imageVO.setImageFileNO(++imageFileNO);
+			imageVO.setArticleNO(articleNO);
+		}
+		sqlSession.insert("mapper.board.insertNewImage", imageFileList);
+	}
+	
+	private int selectNewImageFileNO() throws DataAccessException {
+		return sqlSession.selectOne("mapper.board.selectNewImageFileNO");
 	}
 	
 	private int selectNewArticleNO() {		
@@ -50,6 +69,11 @@ public class BoardDAOImpl implements BoardDAO {
 	@Override
 	public void updateArticle(Map<String, Object> articleMap) throws DataAccessException {
 		sqlSession.update("mapper.board.updateArticle", articleMap);
+	}
+
+	@Override
+	public void deleteArticle(int articleNO) throws DataAccessException {
+		sqlSession.delete("mapper.board.deleteArticle", articleNO);
 	}
 
 }

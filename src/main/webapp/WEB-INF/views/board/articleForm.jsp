@@ -14,8 +14,9 @@ request.setCharacterEncoding("UTF-8");
 	function readURL(input) {
 		if (input.files && input.files[0]) {
 			var reader = new FileReader();
+			var previewCnt = cnt-1;
 			reader.onload = function(e) {
-				$('#preview').attr('src', e.target.result);
+				$("#preview"+previewCnt).attr('src', e.target.result);
 			}
 			reader.readAsDataURL(input.files[0]);
 		}
@@ -28,7 +29,9 @@ request.setCharacterEncoding("UTF-8");
 	var cnt = 1;
 	function fn_addFile() {
 		$("#d_file")
-				.append("<br>" + "<input type='file' name='file"+cnt+"' />");
+				.append("<br>" + "<input type='file' name='file"+cnt+
+						"' onchange='readURL(this)'; /></td><td><img id='preview"+cnt+
+						"' src='#' width=200 heigh=200 />");
 		cnt++;
 	}
 </script>
@@ -44,22 +47,18 @@ request.setCharacterEncoding("UTF-8");
 			</tr>
 			<tr>
 				<td align="right">글제목:</td>
-				<td colspan="2"><input type="text" size="67" maxlength="500" name="title" /></td>
+				<td colspan="2"><input type="text" size="70" maxlength="500" name="title" /></td>
 			</tr>
 			<tr>
 				<td align="right" valign="top"><br>글내용:</td>
 				<td colspan=2><textarea name="content" rows="10" cols="65" maxlength="4000"></textarea></td>
 			</tr>
 			<tr>
-				<td align="right">이미지파일 첨부:</td>
+<!-- 				<td align="right">이미지파일 첨부:</td>
 				<td><input type="file" name="imageFileName" onchange="readURL(this);" /></td>
-				<td><img id="preview" src="#" width=200 height=200 /></td>
-
-				
+				<td><img id="preview" src="#" width=200 height=200 /></td> -->
 				<td align="right">이미지파일 첨부</td>
-				<td align="left"><input type="button" value="파일 추가" onClick="fn_addFile()" /></td>
-
-
+				<td align="center" colspan=2><input type="button" value="파일 추가" onClick="fn_addFile()" /></td>
 			</tr>
 			<tr>
 				<td colspan="4"><div id="d_file"></div></td>
