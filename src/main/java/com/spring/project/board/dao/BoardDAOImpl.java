@@ -24,9 +24,9 @@ public class BoardDAOImpl implements BoardDAO {
 	
 	
 	@Override
-	public List<ArticleVO> selectAllArticlesList() throws DataAccessException {
+	public List<ArticleVO> selectAllArticlesList(Map<String, Integer> pagingMap) throws DataAccessException {
 		
-		List<ArticleVO> listArticles = sqlSession.selectList("mapper.board.selectAllArticlesList");
+		List<ArticleVO> listArticles = sqlSession.selectList("mapper.board.selectAllArticlesList", pagingMap);
 		
 		return listArticles;
 	}
@@ -74,6 +74,23 @@ public class BoardDAOImpl implements BoardDAO {
 	@Override
 	public void deleteArticle(int articleNO) throws DataAccessException {
 		sqlSession.delete("mapper.board.deleteArticle", articleNO);
+	}
+
+	@Override
+	public List<ImageVO> selectImageFileList(int articleNO) throws DataAccessException {
+		List<ImageVO> imageFileList = sqlSession.selectList("mapper.board.selectImageFileList", articleNO);		
+		return imageFileList;
+
+	}
+	
+	@Override 
+	public void updateFile(Map<String, Object> updateFile) throws DataAccessException {
+		sqlSession.update("mapper.board.updateFile", updateFile);
+	}
+
+	@Override
+	public int selectTotalArticlesNO() throws DataAccessException {
+		return sqlSession.selectOne("mapper.board.selectTotalArticlesNO");
 	}
 
 }

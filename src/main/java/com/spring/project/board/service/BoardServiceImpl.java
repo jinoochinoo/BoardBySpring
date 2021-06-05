@@ -1,5 +1,6 @@
 package com.spring.project.board.service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.spring.project.board.dao.BoardDAO;
 import com.spring.project.board.vo.ArticleVO;
+import com.spring.project.board.vo.ImageVO;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
@@ -19,16 +21,23 @@ public class BoardServiceImpl implements BoardService {
 	BoardDAO boardDAO;
 	
 	@Override
-	public List<ArticleVO> listArticles() throws Exception {
-		List<ArticleVO> listArticles = boardDAO.selectAllArticlesList();
-		return listArticles;
+	public Map<String, Object> listArticles(Map<String, Integer> pagingMap) throws Exception {
+		Map<String, Object> mapArticles = new HashMap<String, Object>();
+		List<ArticleVO> listArticles = boardDAO.selectAllArticlesList(pagingMap);
+		int totalArticlesNO = boardDAO.selectTotalArticlesNO();
+		
+		mapArticles.put("listArticles", listArticles);
+		mapArticles.put("totalArticlesNO", totalArticlesNO);
+		return mapArticles;
 	}
 	
 	@Override
 	public int addNewArticle(Map<String, Object> articleMap) throws Exception{
 		int articleNO = boardDAO.insertNewArticle(articleMap);
 		articleMap.put("articleNO", articleNO);
-		boardDAO.insertNewImage(articleMap);
+		if(articleMap.get("imageFileList") != null) {
+			boardDAO.insertNewImage(articleMap);
+		}
 		return articleNO;
 	}
 	
@@ -39,8 +48,13 @@ public class BoardServiceImpl implements BoardService {
 //	}
 
 	@Override
-	public ArticleVO viewArticle(int articleNO) throws Exception {
-		return boardDAO.selectArticle(articleNO);
+	public Map<String, Object> viewArticle(int articleNO) throws Exception {
+		Map<String, Object> articleMap = new HashMap<String, Object>();
+		ArticleVO articleVO = boardDAO.selectArticle(articleNO);
+		List<ImageVO> imageFileList = boardDAO.selectImageFileList(articleNO);
+		articleMap.put("article", articleVO);
+		articleMap.put("imageFileList", imageFileList);
+		return articleMap;
 	}
 
 	@Override
@@ -51,6 +65,11 @@ public class BoardServiceImpl implements BoardService {
 	@Override
 	public void removeArticle(int articleNO) throws Exception {
 		boardDAO.deleteArticle(articleNO);
+	}
+
+	@Override 
+	public void updateFile(Map<String, Object> updateFile) throws Exception {
+		boardDAO.updateFile(updateFile);
 	}
 
 }

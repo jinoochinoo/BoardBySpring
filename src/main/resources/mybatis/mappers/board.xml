@@ -20,16 +20,20 @@
 		<result property="imageFileName" column="imageFileName" />
 	</resultMap>
 
-	<select id="selectAllArticlesList" resultMap="articlesResult">
+	<select id="selectAllArticlesList" resultMap="articlesResult" parameterType="java.util.Map">
     <![CDATA[
-      SELECT level, articleNO, parentNO, title, content, writeDate, imageFileName, id
+      SELECT * FROM (
+      SELECT rownum as nNum, 
+      level, articleNO, parentNO, title, content, writeDate, imageFileName, id 
+      , decode(round(sysdate - writeDate), 0, 'true', 'false') as newArticle
       from t_board
       START WITH  parentNO=0
       CONNECT BY PRIOR articleNO=parentNO 
-      ORDER SIBLINGS BY articleNO DESC		
+      ORDER SIBLINGS BY articleNO DESC ) 
+      WHERE nNum between (#{section}-1) * 50 + (#{pageNum}-1)*10+1 and (#{section}-1)*50 + #{pageNum}*10
     ]]>
 	</select>
-	
+
 	<insert id="insertNewArticle" parameterType="java.util.Map">
 		<![CDATA[
 			INSERT INTO t_board(articleNO, title, content, imageFileName, id)
@@ -56,10 +60,7 @@
 		UPDATE t_board
 		SET title = #{title},
 		content = #{content}
-		<if test="imageFileName != '' and imageFileName != null">
-			, imageFileName = #{imageFileName}
-		</if>
-		where articleNO = #{articleNO}
+		WHERE articleNO = #{articleNO}
 		]]>
 	</update>
 	
@@ -89,4 +90,37 @@
 		]]>
 	</select>
 	
+	<select id="selectImageFileList" resultMap="imgResult" parameterType="int">
+		<![CDATA[
+			SELECT *
+			FROM t_imageFile
+			WHERE articleNO = #{articleNO}
+		]]>
+	</select>
+
+	<select id="selectImageFileNO" parameterType="java.util.Map" resultType="int">
+		<![CDATA[
+			SELECT imageFileNO
+			FROM t_imageFile
+			WHERE articleNO = #{articleNO}
+			AND imageFileName = #{imageFileName}
+		]]>
+	</select>
+	
+	<update id="updateFile" parameterType="java.util.Map">
+		<![CDATA[
+			UPDATE t_imageFile
+			SET imageFileName = #{newFile}
+			WHERE articleNO = #{articleNO}
+			AND imageFileName = #{deleteFile}
+		]]>		
+	</update>
+	
+	<select id="selectTotalArticlesNO" resultType="int">
+		<![CDATA[
+			SELECT count(*)
+			from t_board
+		]]>
+	</select>	
+		
 </mapper>

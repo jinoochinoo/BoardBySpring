@@ -47,10 +47,22 @@ public class BoardControllerImpl implements BoardController {
 	@RequestMapping(value="/board/listArticles.do", method= {RequestMethod.GET, RequestMethod.POST})
 	public ModelAndView listArticles(HttpServletRequest request, HttpServletResponse response) throws Exception {		 
 		logger.info("listArticles() called");
+		
+		String section_1 = request.getParameter("section");
+		String pageNum_1 = request.getParameter("pageNum");
+		int section = Integer.parseInt((section_1 == null || section_1.length() == 0) ? "1" : section_1);
+		int pageNum = Integer.parseInt((pageNum_1 == null || pageNum_1.length() == 0) ? "1" : pageNum_1);	
+		
+		Map<String, Integer> pagingMap = new HashMap<String, Integer>();
+		pagingMap.put("section", section);
+		pagingMap.put("pageNum", pageNum);
+		
 		String viewName = (String) request.getAttribute("viewName");
-		List<ArticleVO> articlesList = boardService.listArticles();
+		Map<String, Object> mapArticles = boardService.listArticles(pagingMap);
+		mapArticles.put("section", section);
+		mapArticles.put("pageNum", pageNum);
 		ModelAndView mav = new ModelAndView();
-		mav.addObject("articlesList", articlesList); 
+		mav.addObject("mapArticles", mapArticles); 
 		mav.setViewName(viewName);
 		return mav;
 	}
@@ -76,9 +88,7 @@ public class BoardControllerImpl implements BoardController {
 		HttpSession session = multipartRequest.getSession();
 		MemberVO memberVO = (MemberVO) session.getAttribute("member");
 		String id = memberVO.getId();
-//		articleMap.put("parentNO", 0);
 		articleMap.put("id", id);
-//		articleMap.put("imageFileName", imageFileName);
 		
 		List<String> fileList = upload(multipartRequest);
 		List<ImageVO> imageFileList = new ArrayList<ImageVO>();
@@ -235,7 +245,9 @@ public class BoardControllerImpl implements BoardController {
 			String fileName = fileNames.next();
 			MultipartFile mFile = multipartRequest.getFile(fileName);
 			String originalFileName = mFile.getOriginalFilename();
-			fileList.add(originalFileName);
+			if(originalFileName.length() != 0 && !originalFileName.isEmpty()) {
+				fileList.add(originalFileName);
+			}
 			File file = new File(ARTICLE_IMAGE_REPO + "\\temp\\" + fileName);
 			if(mFile.getSize() != 0) {
 				if(!file.exists()) {
@@ -243,7 +255,6 @@ public class BoardControllerImpl implements BoardController {
 					mFile.transferTo(new File(ARTICLE_IMAGE_REPO + "\\temp\\" + originalFileName));
 				}
 			}
-			logger.info("upload() called");
 			logger.info("fileName : " + fileName);
 			logger.info("originalFileName : " + originalFileName);
 		}
@@ -256,9 +267,9 @@ public class BoardControllerImpl implements BoardController {
 			throws Exception {
 		logger.info("viewArticle() called");
 		String viewName = (String) request.getAttribute("viewName");
-		articleVO = boardService.viewArticle(articleNO);
+		Map<String, Object> articleMap = boardService.viewArticle(articleNO);
 		ModelAndView mav = new ModelAndView();
-		mav.addObject("article", articleVO);
+		mav.addObject("articleMap", articleMap);
 		mav.setViewName(viewName);		
 		return mav;
 	}
@@ -278,16 +289,17 @@ public class BoardControllerImpl implements BoardController {
 			articleMap.put(name, value);
 		}
 		List<String> fileList = upload(multipartRequest);
+		logger.info("upload() finished");
+		logger.info("fileList.toString() : " + fileList.toString());
 		List<ImageVO> imageFileList = new ArrayList<ImageVO>();
-		if(fileList != null && fileList.size() != 0) {
+		if(!fileList.isEmpty() && fileList.get(0) != null) {
 			for(String fileName : fileList) {
 				ImageVO imageVO = new ImageVO();
 				imageVO.setImageFileName(fileName);
 				imageFileList.add(imageVO);
 			}
 			articleMap.put("imageFileList", imageFileList);
-		}		
-				
+		}
 		String articleNO = (String) articleMap.get("articleNO");
 		String message;
 		ResponseEntity resEnt = null;
@@ -297,21 +309,34 @@ public class BoardControllerImpl implements BoardController {
 		String imageFileName;
 		try {
 			boardService.modArticle(articleMap);
-			if(imageFileList != null && imageFileList.size() != 0) {
+
+			if(!imageFileList.isEmpty() && imageFileList.get(0) != null) {
+				// 기존 파일 삭제
+				String[] originalFilesList = multipartRequest.getParameterValues("originalFilesList");
+				logger.info("orinalFileList.length : " + originalFilesList.length);
+				logger.info("originalFilesList.toString() : " + originalFilesList.toString());
+				for(int i=0; i<originalFilesList.length; i++) {
+					File oldFile = new File(ARTICLE_IMAGE_REPO + "\\" + articleNO + "\\" + originalFilesList[i]);
+					oldFile.delete();
+					Map<String, Object> updateFile = new HashMap<String, Object>();
+					updateFile.put("deleteFile", originalFilesList[i]);
+					updateFile.put("articleNO", articleNO);
+//					updateFile.put("imageFileList", imageFileList);
+					updateFile.put("newFile", imageFileList.get(i).getImageFileName());
+					logger.info("imageFileList.get(i).getImageFileName() : " + imageFileList.get(i).getImageFileName());
+					boardService.updateFile(updateFile);
+				}
+				// 신규 파일 등록
 				for(ImageVO imageVO : imageFileList) {
-					imageFileName = imageVO.getImageFileName();
-					// srcFile : upload() 통해 생성된 파일								
+					imageFileName = imageVO.getImageFileName();	
 					File srcFile = new File(ARTICLE_IMAGE_REPO + "\\temp\\" + imageFileName);
 					File destDir = new File(ARTICLE_IMAGE_REPO + "\\" + articleNO);
 					FileUtils.moveFileToDirectory(srcFile, destDir, true);					
 				}			
-				String originalFileName = (String) articleMap.get("originalFileName");
-				File oldFile = new File(ARTICLE_IMAGE_REPO + "\\" + articleNO + "\\" + originalFileName);
-				oldFile.delete();
 			} 
 			message = "<script>"
 					+ " alert('글이 정상적으로 수정됐습니다'); "
-					+ " location.href='" + multipartRequest.getContextPath() + "/board/viewArticle?ArticleNO=" + articleNO + "';"
+					+ " location.href='" + multipartRequest.getContextPath() + "/board/viewArticle.do?articleNO=" + articleNO + "';"
 					+ " </script> ";
 			resEnt = new ResponseEntity(message, responseHeaders, HttpStatus.CREATED);
 		} catch(Exception e) {
@@ -324,13 +349,25 @@ public class BoardControllerImpl implements BoardController {
 			}
 			message = "<script>"
 					+ " alert('글 수정 과정에서 에러가 발생했습니다!'); "
-					+ " location.href='" + multipartRequest.getContextPath() + "/board/viewArticle?ArticleNO=" + articleNO + "';"
+					+ " location.href='" + multipartRequest.getContextPath() + "/board/viewArticle.do?articleNO=" + articleNO + "';"
 					+ " </script> ";
 			resEnt = new ResponseEntity(message, responseHeaders, HttpStatus.CREATED);
 				e.printStackTrace();
 		}
 		return resEnt;
-	}	
+	}
+	
+	public void selectImageFileNO(Map<String, Object> articleMap) {
+		logger.info("selectImageFileNO() called");
+		int articleNO = (Integer) articleMap.get("articleNO");
+		int imageCnt = (Integer) articleMap.get("imageCnt");
+		logger.info("articleNO : " + articleNO);
+		logger.info("imageCnt : " + imageCnt);
+		for(int i=0; i<imageCnt; i++) {
+			String imageFileName = (String) articleMap.get("originalFileName"+i+1);
+			logger.info("imageFileName = " + imageFileName);
+		}
+	}
 	
 //////////////////////////////첨부파일 한 개일 때 사용한 modArticle() ///////////////////////////////////
 //	@Override

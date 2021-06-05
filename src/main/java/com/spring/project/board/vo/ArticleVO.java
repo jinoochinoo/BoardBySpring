@@ -17,7 +17,16 @@ public class ArticleVO {
 	private String imageFileName;
 	private String id;
 	private Date  writeDate;
+	private boolean newArticle;
 	
+	public boolean isNewArticle() {
+		return newArticle;
+	}
+
+	public void setNewArticle(boolean newArticle) {
+		this.newArticle = newArticle;
+	}
+
 	public ArticleVO() {
 	}
 
